@@ -103,7 +103,22 @@ const translations = {
         'con_abbrev': 'CON',
         'int_abbrev': 'INT',
         'wis_abbrev': 'WIS',
-        'cha_abbrev': 'CHA'
+        'cha_abbrev': 'CHA',
+        'attack-builder': 'Attack Builder',
+        'attack-name': 'Attack Name:',
+        'attack-type': 'Type:',
+        'attack-melee': 'Melee Weapon Attack',
+        'attack-ranged': 'Ranged Weapon Attack',
+        'attack-spell': 'Spell Attack',
+        'attack-bonus': 'Attack Bonus:',
+        'attack-reach': 'Reach/Range:',
+        'attack-damage-dice': 'Damage Dice:',
+        'attack-damage-bonus': 'Damage Bonus:',
+        'attack-damage-type': 'Damage Type:',
+        'attack-extra': 'Extra Effects:',
+        'add-attack': 'Add Attack',
+        'confirm-attack': 'Confirm Attack',
+        'cancel-attack': 'Cancel'
     },
     pt: {
         'app-title': 'Criador de Cartas de Monstros D&D',
@@ -202,7 +217,22 @@ const translations = {
         'con_abbrev': 'CON',
         'int_abbrev': 'INT',
         'wis_abbrev': 'SAB',
-        'cha_abbrev': 'CAR'
+        'cha_abbrev': 'CAR',
+        'attack-builder': 'Construtor de Ataques',
+        'attack-name': 'Nome do Ataque:',
+        'attack-type': 'Tipo:',
+        'attack-melee': 'Ataque Corpo a Corpo',
+        'attack-ranged': 'Ataque à Distância',
+        'attack-spell': 'Ataque de Magia',
+        'attack-bonus': 'Bônus de Ataque:',
+        'attack-reach': 'Alcance:',
+        'attack-damage-dice': 'Dados de Dano:',
+        'attack-damage-bonus': 'Bônus de Dano:',
+        'attack-damage-type': 'Tipo de Dano:',
+        'attack-extra': 'Efeitos Extras:',
+        'add-attack': 'Adicionar Ataque',
+        'confirm-attack': 'Confirmar Ataque',
+        'cancel-attack': 'Cancelar'
     }
 };
 
@@ -246,6 +276,20 @@ const imageInput = document.getElementById('monster-image');
 const imageUpload = document.getElementById('monster-image-upload');
 const abilitiesInput = document.getElementById('special-abilities');
 const actionsInput = document.getElementById('actions');
+
+// Attack builder inputs
+const attackForm = document.getElementById('attack-form');
+const addAttackBtn = document.getElementById('add-attack-btn');
+const confirmAttackBtn = document.getElementById('confirm-attack');
+const cancelAttackBtn = document.getElementById('cancel-attack');
+const attackNameInput = document.getElementById('attack-name');
+const attackTypeSelect = document.getElementById('attack-type');
+const attackBonusInput = document.getElementById('attack-bonus');
+const attackReachInput = document.getElementById('attack-reach');
+const attackDamageDiceInput = document.getElementById('attack-damage-dice');
+const attackDamageBonusInput = document.getElementById('attack-damage-bonus');
+const attackDamageTypeSelect = document.getElementById('attack-damage-type');
+const attackExtraInput = document.getElementById('attack-extra');
 
 // Customization inputs
 const cardColorSelect = document.getElementById('card-color');
@@ -306,6 +350,7 @@ const backImageGroup = document.getElementById('back-image-group');
 const backImageInput = document.getElementById('back-image-url');
 const backImageUpload = document.getElementById('back-image-upload');
 const cardBack = document.getElementById('monster-card-back');
+const cardBackContent = document.querySelector('.card-back-content');
 const cardBackLogo = document.getElementById('card-back-logo');
 const cardBackImageContainer = document.getElementById('card-back-image-container');
 const cardBackImage = document.getElementById('card-back-image');
@@ -346,19 +391,42 @@ function formatText(text) {
 function updateCardColor() {
     const selectedColor = cardColorSelect.value;
     
+    console.log('updateCardColor called with:', selectedColor);
+    
+    if (!monsterCard) {
+        console.error('monsterCard element not found!');
+        return;
+    }
+    
     // Remove all color classes
     monsterCard.classList.remove('classic', 'red', 'blue', 'green', 'black', 'white', 'purple', 'metal', 'gold');
     
-    // Add selected color class
-    if (selectedColor !== 'classic') {
+    // Add selected color class only if it's not empty and not 'classic'
+    if (selectedColor && selectedColor !== 'classic' && selectedColor.trim() !== '') {
         monsterCard.classList.add(selectedColor);
+        console.log('Added color class:', selectedColor);
+    } else {
+        console.log('No color class added (classic or empty)');
     }
 }
 
 // Update card logo
 function updateCardLogo() {
     const selectedLogo = cardLogoSelect.value;
-    cardLogo.textContent = selectedLogo;
+    
+    console.log('updateCardLogo called with:', selectedLogo);
+    
+    if (!cardLogo) {
+        console.error('cardLogo element not found!');
+        return;
+    }
+    
+    if (selectedLogo) {
+        cardLogo.textContent = selectedLogo;
+        console.log('Logo updated to:', selectedLogo);
+    } else {
+        console.log('No logo set (empty value)');
+    }
 }
 
 // Reset image position to center
@@ -393,13 +461,39 @@ function updateImagePosition() {
 
 // Generate card function
 function generateCard() {
+    console.log('generateCard() called');
+    console.log('Current input values:', {
+        name: nameInput.value,
+        cr: crInput.value,
+        ac: acInput.value
+    });
+    
+    // Check if card elements exist
+    console.log('Card elements:', {
+        cardName: cardName,
+        cardCost: cardCost,
+        cardType: cardType,
+        cardAc: cardAc
+    });
+    
     // Update card color theme and logo
     updateCardColor();
     updateCardLogo();
     
     // Update card name and cost
-    cardName.textContent = nameInput.value || 'Monster Name';
-    cardCost.textContent = crInput.value || 'CR';
+    if (cardName) {
+        cardName.textContent = nameInput.value || 'Monster Name';
+        console.log('Card name updated to:', cardName.textContent);
+    } else {
+        console.error('cardName element not found!');
+    }
+    
+    if (cardCost) {
+        cardCost.textContent = crInput.value || 'CR';
+        console.log('Card CR updated to:', cardCost.textContent);
+    } else {
+        console.error('cardCost element not found!');
+    }
 
     // Update card type with symbol
     let displayType = 'Creature Type';
@@ -476,19 +570,217 @@ function generateCard() {
         cardImage.src = '';
     }
 
-    // Update special abilities
-    cardAbilities.innerHTML = '';
+    // Check for content overflow first
+    let hasOverflow = false;
+    try {
+        hasOverflow = detectContentOverflow();
+    } catch (error) {
+        console.warn('Error detecting content overflow:', error);
+        hasOverflow = false;
+    }
+
+    if (hasOverflow) {
+        // Use overflow system - getOverflowContent will handle updating front card content
+        console.log('Content overflow detected, using overflow system');
+        getOverflowContent(); // This calls updateFrontCardContent internally
+    } else {
+        // No overflow, use normal content display
+        console.log('No overflow, using normal content display');
+        
+        // Update special abilities
+        cardAbilities.innerHTML = '';
+        if (abilitiesInput.value.trim()) {
+            const abilitiesTitle = document.createElement('h4');
+            abilitiesTitle.textContent = 'Special Abilities';
+            cardAbilities.appendChild(abilitiesTitle);
+
+            const abilities = abilitiesInput.value.split('\n').filter(line => line.trim());
+            abilities.forEach(ability => {
+                const abilityDiv = document.createElement('div');
+                abilityDiv.className = 'ability-item';
+                
+                // Check if ability has a name (format: "Name. Description")
+                const colonIndex = ability.indexOf('.');
+                if (colonIndex > 0 && colonIndex < 30) {
+                    const name = ability.substring(0, colonIndex);
+                    const description = ability.substring(colonIndex + 1).trim();
+                    abilityDiv.innerHTML = `<span class="ability-name">${formatText(name)}.</span> ${formatText(description)}`;
+                } else {
+                    abilityDiv.innerHTML = formatText(ability);
+                }
+                
+                cardAbilities.appendChild(abilityDiv);
+            });
+        }
+
+        // Update actions
+        cardActions.innerHTML = '';
+        if (actionsInput.value.trim()) {
+            const actionsTitle = document.createElement('h4');
+            actionsTitle.textContent = 'Actions';
+            cardActions.appendChild(actionsTitle);
+
+            const actions = actionsInput.value.split('\n').filter(line => line.trim());
+            actions.forEach(action => {
+                const actionDiv = document.createElement('div');
+                actionDiv.className = 'action-item';
+                
+                // Check if action has a name (format: "Name. Description")
+                const colonIndex = action.indexOf('.');
+                if (colonIndex > 0 && colonIndex < 30) {
+                    const name = action.substring(0, colonIndex);
+                    const description = action.substring(colonIndex + 1).trim();
+                    actionDiv.innerHTML = `<span class="action-name">${formatText(name)}.</span> ${formatText(description)}`;
+                } else {
+                    actionDiv.innerHTML = formatText(action);
+                }
+                
+                cardActions.appendChild(actionDiv);
+            });
+        }
+    }
+    
+    // Update card back
+    updateCardBack();
+}
+
+// Function to detect if front card content is overflowing
+function detectContentOverflow() {
+    const card = document.getElementById('monster-card');
+    if (!card) return false;
+    
+    // Count total estimated lines of text content
+    let totalLines = 0;
+    const maxLinesOnFront = 18; // More conservative limit
+    
+    // Count abilities lines
     if (abilitiesInput.value.trim()) {
+        const abilities = abilitiesInput.value.split('\n').filter(line => line.trim());
+        abilities.forEach(ability => {
+            totalLines += Math.ceil(ability.length / 50); // More conservative ~50 chars per line
+        });
+    }
+    
+    // Count actions lines
+    if (actionsInput.value.trim()) {
+        const actions = actionsInput.value.split('\n').filter(line => line.trim());
+        actions.forEach(action => {
+            totalLines += Math.ceil(action.length / 50); // More conservative ~50 chars per line
+        });
+    }
+    
+    console.log(`Total estimated lines: ${totalLines}, Max allowed: ${maxLinesOnFront}`);
+    return totalLines > maxLinesOnFront;
+}
+
+// Function to get overflow text content
+function getOverflowContent() {
+    let overflowContent = '';
+    let totalLines = 0;
+    const maxLinesOnFront = 18; // More conservative limit
+    
+    // Collect all text content in order
+    let allContent = [];
+    
+    // Add abilities to content array
+    if (abilitiesInput.value.trim()) {
+        const abilities = abilitiesInput.value.split('\n').filter(line => line.trim());
+        abilities.forEach(ability => {
+            allContent.push({
+                type: 'ability',
+                text: ability,
+                lines: Math.ceil(ability.length / 50) // More conservative ~50 chars per line
+            });
+        });
+    }
+    
+    // Add actions to content array
+    if (actionsInput.value.trim()) {
+        const actions = actionsInput.value.split('\n').filter(line => line.trim());
+        actions.forEach(action => {
+            allContent.push({
+                type: 'action',
+                text: action,
+                lines: Math.ceil(action.length / 50) // More conservative ~50 chars per line
+            });
+        });
+    }
+    
+    // Separate content into front and back based on line count
+    let frontContent = { abilities: [], actions: [] };
+    let backContent = { abilities: [], actions: [] };
+    
+    allContent.forEach(item => {
+        if (totalLines + item.lines <= maxLinesOnFront) {
+            // Add to front
+            if (item.type === 'ability') {
+                frontContent.abilities.push(item.text);
+            } else {
+                frontContent.actions.push(item.text);
+            }
+            totalLines += item.lines;
+        } else {
+            // Add to back
+            if (item.type === 'ability') {
+                backContent.abilities.push(item.text);
+            } else {
+                backContent.actions.push(item.text);
+            }
+        }
+    });
+    
+    // Update front card with limited content
+    updateFrontCardContent(frontContent, backContent.abilities.length > 0 || backContent.actions.length > 0);
+    
+    // Prepare back card content
+    if (backContent.abilities.length > 0) {
+        overflowContent += '<h4>Special Abilities (continued)</h4>';
+        backContent.abilities.forEach(ability => {
+            const colonIndex = ability.indexOf('.');
+            if (colonIndex > 0 && colonIndex < 30) {
+                const name = ability.substring(0, colonIndex);
+                const description = ability.substring(colonIndex + 1).trim();
+                overflowContent += `<p><strong>${formatText(name)}.</strong> ${formatText(description)}</p>`;
+            } else {
+                overflowContent += `<p>${formatText(ability)}</p>`;
+            }
+        });
+    }
+    
+    if (backContent.actions.length > 0) {
+        if (overflowContent) overflowContent += '<br>';
+        overflowContent += '<h4>Actions (continued)</h4>';
+        backContent.actions.forEach(action => {
+            const colonIndex = action.indexOf('.');
+            if (colonIndex > 0 && colonIndex < 30) {
+                const name = action.substring(0, colonIndex);
+                const description = action.substring(colonIndex + 1).trim();
+                overflowContent += `<p><strong>${formatText(name)}.</strong> ${formatText(description)}</p>`;
+            } else {
+                overflowContent += `<p>${formatText(action)}</p>`;
+            }
+        });
+    }
+    
+    return overflowContent;
+}
+
+// Helper function to update front card content
+function updateFrontCardContent(frontContent, hasOverflow) {
+    // Always clear both sections first
+    cardAbilities.innerHTML = '';
+    cardActions.innerHTML = '';
+    
+    // Update abilities
+    if (frontContent.abilities.length > 0) {
         const abilitiesTitle = document.createElement('h4');
         abilitiesTitle.textContent = 'Special Abilities';
         cardAbilities.appendChild(abilitiesTitle);
-
-        const abilities = abilitiesInput.value.split('\n').filter(line => line.trim());
-        abilities.forEach(ability => {
+        
+        frontContent.abilities.forEach(ability => {
             const abilityDiv = document.createElement('div');
             abilityDiv.className = 'ability-item';
             
-            // Check if ability has a name (format: "Name. Description")
             const colonIndex = ability.indexOf('.');
             if (colonIndex > 0 && colonIndex < 30) {
                 const name = ability.substring(0, colonIndex);
@@ -500,21 +792,26 @@ function generateCard() {
             
             cardAbilities.appendChild(abilityDiv);
         });
+        
+        // Add continuation indicator if there's overflow
+        if (hasOverflow) {
+            const continueDiv = document.createElement('div');
+            continueDiv.className = 'continue-indicator';
+            continueDiv.innerHTML = '<em>(continued on back...)</em>';
+            cardAbilities.appendChild(continueDiv);
+        }
     }
-
+    
     // Update actions
-    cardActions.innerHTML = '';
-    if (actionsInput.value.trim()) {
+    if (frontContent.actions.length > 0) {
         const actionsTitle = document.createElement('h4');
         actionsTitle.textContent = 'Actions';
         cardActions.appendChild(actionsTitle);
-
-        const actions = actionsInput.value.split('\n').filter(line => line.trim());
-        actions.forEach(action => {
+        
+        frontContent.actions.forEach(action => {
             const actionDiv = document.createElement('div');
             actionDiv.className = 'action-item';
             
-            // Check if action has a name (format: "Name. Description")
             const colonIndex = action.indexOf('.');
             if (colonIndex > 0 && colonIndex < 30) {
                 const name = action.substring(0, colonIndex);
@@ -527,9 +824,6 @@ function generateCard() {
             cardActions.appendChild(actionDiv);
         });
     }
-    
-    // Update card back
-    updateCardBack();
 }
 
 // Update card back function
@@ -545,160 +839,544 @@ function updateCardBack() {
     cardBackImageContainer.style.display = 'none';
     cardBackText.style.display = 'none';
     
-    switch (backType) {
-        case 'logo':
+    // Check for content overflow
+    let hasOverflow = false;
+    let overflowContent = '';
+    try {
+        hasOverflow = detectContentOverflow();
+        overflowContent = getOverflowContent();
+    } catch (error) {
+        console.warn('Error detecting content overflow:', error);
+        hasOverflow = false;
+        overflowContent = '';
+    }
+    
+    // Auto-switch to text overflow mode if content is overflowing
+    if (hasOverflow && overflowContent.trim()) {
+        // Content overflow always takes priority over manual back settings
+        console.log('Showing overflow content on back, with background image if available');
+        
+        // Add overflow mode class to position content at top
+        cardBackContent.classList.add('overflow-mode');
+        
+        // Show text
+        cardBackText.style.display = 'block';
+        cardBackText.innerHTML = overflowContent;
+        
+        // Check if there's a background image to show behind the text
+        if (backType === 'image' && backImageInput.value) {
+            // Show image behind the text
+            cardBackImageContainer.style.display = 'flex';
+            cardBackImage.src = backImageInput.value;
+            // Make the image more transparent so text is readable
+            cardBackImage.style.opacity = '0.4';
+            cardBackImage.style.filter = 'blur(0.5px)'; // Very slight blur for better text readability
+            
+            // Hide logo when there's a background image
+            cardBackLogo.style.display = 'none';
+        } else {
+            // Show faded logo background if no image
             cardBackLogo.style.display = 'block';
             cardBackLogo.textContent = cardLogoSelect.value || '⚔️';
-            break;
+            cardBackLogo.style.opacity = '0.05';
             
-        case 'image':
-            if (backImageInput.value) {
-                cardBackImageContainer.style.display = 'flex';
-                cardBackImage.src = backImageInput.value;
-            } else {
-                // Fallback to logo if no image
+            // Hide image container
+            cardBackImageContainer.style.display = 'none';
+        }
+    } else {
+        // Remove overflow mode class for normal back modes
+        cardBackContent.classList.remove('overflow-mode');
+        // Normal back behavior
+        switch (backType) {
+            case 'logo':
                 cardBackLogo.style.display = 'block';
+                cardBackLogo.style.opacity = '0.15';
                 cardBackLogo.textContent = cardLogoSelect.value || '⚔️';
-            }
-            break;
-            
-        case 'text-overflow':
-            cardBackText.style.display = 'block';
-            // Show logo faintly in background
-            cardBackLogo.style.display = 'block';
-            cardBackLogo.textContent = cardLogoSelect.value || '⚔️';
-            
-            // Compile all text content for overflow
-            let textContent = '<h4>Complete Monster Details</h4>';
-            textContent += `<p><strong>Name:</strong> ${nameInput.value || 'Monster Name'}</p>`;
-            textContent += `<p><strong>Type:</strong> ${typeInput.value || 'Creature Type'}</p>`;
-            textContent += `<p><strong>Armor Class:</strong> ${acInput.value || '--'}</p>`;
-            textContent += `<p><strong>Hit Points:</strong> ${hpInput.value || '--'}</p>`;
-            textContent += `<p><strong>Speed:</strong> ${speedInput.value || '--'}</p>`;
-            textContent += `<p><strong>Challenge Rating:</strong> ${crInput.value || '--'}</p>`;
-            
-            if (abilitiesInput.value.trim()) {
-                textContent += '<h4>Special Abilities</h4>';
-                textContent += `<p>${formatText(abilitiesInput.value)}</p>`;
-            }
-            
-            if (actionsInput.value.trim()) {
-                textContent += '<h4>Actions</h4>';
-                textContent += `<p>${formatText(actionsInput.value)}</p>`;
-            }
-            
-            cardBackText.innerHTML = textContent;
-            break;
+                break;
+                
+            case 'image':
+                if (backImageInput.value) {
+                    cardBackImageContainer.style.display = 'flex';
+                    cardBackImage.src = backImageInput.value;
+                    // Reset image styles for normal display (no overflow)
+                    cardBackImage.style.opacity = '1';
+                    cardBackImage.style.filter = 'none';
+                } else {
+                    // Fallback to logo if no image
+                    cardBackLogo.style.display = 'block';
+                    cardBackLogo.style.opacity = '0.15';
+                    cardBackLogo.textContent = cardLogoSelect.value || '⚔️';
+                }
+                break;
+                
+            case 'text-overflow':
+                cardBackText.style.display = 'block';
+                // Show logo faintly in background
+                cardBackLogo.style.display = 'block';
+                cardBackLogo.style.opacity = '0.08';
+                cardBackLogo.textContent = cardLogoSelect.value || '⚔️';
+                
+                // Compile all text content for overflow
+                let textContent = '<h4>Complete Monster Details</h4>';
+                textContent += `<p><strong>Name:</strong> ${nameInput.value || 'Monster Name'}</p>`;
+                textContent += `<p><strong>Type:</strong> ${typeInput.value || 'Creature Type'}</p>`;
+                textContent += `<p><strong>Armor Class:</strong> ${acInput.value || '--'}</p>`;
+                textContent += `<p><strong>Hit Points:</strong> ${hpInput.value || '--'}</p>`;
+                textContent += `<p><strong>Speed:</strong> ${speedInput.value || '--'}</p>`;
+                textContent += `<p><strong>Challenge Rating:</strong> ${crInput.value || '--'}</p>`;
+                
+                if (abilitiesInput.value.trim()) {
+                    textContent += '<h4>Special Abilities</h4>';
+                    textContent += `<p>${formatText(abilitiesInput.value)}</p>`;
+                }
+                
+                if (actionsInput.value.trim()) {
+                    textContent += '<h4>Actions</h4>';
+                    textContent += `<p>${formatText(actionsInput.value)}</p>`;
+                }
+                
+                cardBackText.innerHTML = textContent;
+                break;
+                
+            case 'empty':
+                // Keep it empty but show faded logo if no overflow
+                cardBackLogo.style.display = 'block';
+                cardBackLogo.style.opacity = '0.05';
+                cardBackLogo.textContent = cardLogoSelect.value || '⚔️';
+                break;
+        }
     }
 }
 
-// Update card back based on selected type
-function updateCardBack() {
-    const backType = cardBackTypeSelect.value;
-    const cardColor = cardColorSelect.value;
-    const cardLogo = cardLogoSelect.value;
+// Attack Builder Functions
+function showAttackForm() {
+    attackForm.style.display = 'block';
+    addAttackBtn.textContent = translations[currentLanguage]['add-attack'] || 'Add Attack';
+}
+
+function hideAttackForm() {
+    attackForm.style.display = 'none';
+}
+
+function generateAttackText() {
+    const name = attackNameInput.value.trim();
+    const type = attackTypeSelect.value;
+    const bonus = attackBonusInput.value;
+    const reach = attackReachInput.value.trim();
+    const damageDice = attackDamageDiceInput.value.trim();
+    const damageBonus = attackDamageBonusInput.value;
+    const damageType = attackDamageTypeSelect.value;
+    const extra = attackExtraInput.value.trim();
     
-    // Apply same color scheme to back card
-    cardBack.className = `monster-card card-back ${cardColor}`;
+    if (!name) {
+        alert('Please enter an attack name.');
+        return null;
+    }
     
-    // Hide all back content first
-    cardBackLogo.style.display = 'none';
-    cardBackImageContainer.style.display = 'none';
-    cardBackText.style.display = 'none';
+    let attackText = `**${name}.** `;
     
-    switch(backType) {
-        case 'logo':
-            cardBackLogo.style.display = 'block';
-            cardBackLogo.textContent = cardLogo || '⚔️';
+    // Attack type
+    let attackTypeText = '';
+    switch (type) {
+        case 'melee':
+            attackTypeText = '*Melee Weapon Attack:*';
             break;
-            
-        case 'image':
-            cardBackImageContainer.style.display = 'flex';
-            if (backImageInput.value) {
-                cardBackImage.src = backImageInput.value;
-                cardBackImage.style.display = 'block';
-                cardBackImage.style.opacity = '1'; // Reset opacity for normal image display
-            }
+        case 'ranged':
+            attackTypeText = '*Ranged Weapon Attack:*';
             break;
-            
-        case 'empty':
-            // Check if there's any description text to determine transparency
-            const hasDescription = (abilitiesInput.value && abilitiesInput.value.trim()) || 
-                                 (actionsInput.value && actionsInput.value.trim());
-            
-            // Show background image with dynamic transparency
-            cardBackImageContainer.style.display = 'flex';
-            if (backImageInput.value) {
-                cardBackImage.src = backImageInput.value;
-                cardBackImage.style.display = 'block';
-                // Set opacity based on whether there's description text
-                cardBackImage.style.opacity = hasDescription ? '0.5' : '0';
-            } else {
-                // No image, just transparent background
-                cardBackImage.style.display = 'none';
-            }
-            break;
-            
-        case 'text-overflow':
-            cardBackText.style.display = 'block';
-            cardBackLogo.style.display = 'block';
-            cardBackLogo.textContent = cardLogo || '⚔️';
-            
-            // Compile all monster information for text overflow
-            const monsterInfo = `
-                <h4>${nameInput.value || 'Monster Name'}</h4>
-                <p><strong>Type:</strong> ${typeInput.value || 'Creature Type'}</p>
-                <p><strong>AC:</strong> ${acInput.value || '--'} | <strong>HP:</strong> ${hpInput.value || '--'}</p>
-                <p><strong>Speed:</strong> ${speedInput.value || '--'}</p>
-                <p><strong>CR:</strong> ${crInput.value || '--'}</p>
-                
-                <p><strong>Ability Scores:</strong><br>
-                STR ${strengthInput.value || 10}, DEX ${dexterityInput.value || 10}, CON ${constitutionInput.value || 10}<br>
-                INT ${intelligenceInput.value || 10}, WIS ${wisdomInput.value || 10}, CHA ${charismaInput.value || 10}</p>
-                
-                ${specialAbilitiesInput.value ? `<p><strong>Special Abilities:</strong><br>${formatText(specialAbilitiesInput.value)}</p>` : ''}
-                ${actionsInput.value ? `<p><strong>Actions:</strong><br>${formatText(actionsInput.value)}</p>` : ''}
-            `;
-            cardBackText.innerHTML = monsterInfo;
+        case 'spell':
+            attackTypeText = '*Ranged Spell Attack:*';
             break;
     }
+    
+    attackText += attackTypeText;
+    
+    // Attack bonus
+    if (bonus) {
+        const bonusText = bonus.toString().startsWith('+') || bonus.toString().startsWith('-') ? bonus : `+${bonus}`;
+        attackText += ` ${bonusText} to hit`;
+    }
+    
+    // Reach/Range
+    if (reach) {
+        attackText += `, reach ${reach}`;
+    }
+    
+    attackText += ', one target. ';
+    
+    // Damage
+    if (damageDice || damageBonus) {
+        let damage = '';
+        let averageDamage = '';
+        
+        if (damageDice) {
+            // Calculate average damage for dice
+            const diceMatch = damageDice.match(/(\d+)d(\d+)/);
+            if (diceMatch) {
+                const numDice = parseInt(diceMatch[1]);
+                const diceSize = parseInt(diceMatch[2]);
+                const avgRoll = (diceSize + 1) / 2;
+                averageDamage = Math.floor(numDice * avgRoll);
+            }
+            damage = damageDice;
+        }
+        
+        if (damageBonus) {
+            const bonus = parseInt(damageBonus);
+            if (damage) {
+                damage += ` + ${Math.abs(bonus)}`;
+                averageDamage = averageDamage ? averageDamage + bonus : bonus;
+            } else {
+                damage = Math.abs(bonus).toString();
+                averageDamage = Math.abs(bonus);
+            }
+        }
+        
+        if (damage) {
+            attackText += `*Hit:* `;
+            if (averageDamage) {
+                attackText += `${averageDamage} (${damage}) `;
+            } else {
+                attackText += `${damage} `;
+            }
+            attackText += `***${damageType}*** damage`;
+        }
+    }
+    
+    // Extra effects
+    if (extra) {
+        if (damageDice || damageBonus) {
+            attackText += `, and ${extra}`;
+        } else {
+            attackText += `*Hit:* ${extra}`;
+        }
+    }
+    
+    attackText += '.';
+    
+    return attackText;
+}
+
+function confirmAttack() {
+    const attackText = generateAttackText();
+    if (!attackText) return;
+    
+    // Add to actions textarea
+    const currentActions = actionsInput.value.trim();
+    if (currentActions) {
+        actionsInput.value = currentActions + '\n' + attackText;
+    } else {
+        actionsInput.value = attackText;
+    }
+    
+    // Clear the attack form and hide it
+    clearAttackForm();
+    hideAttackForm();
+    
+    // Update the card
+    generateCard();
+}
+
+function cancelAttack() {
+    clearAttackForm();
+    hideAttackForm();
+}
+
+function clearAttackForm() {
+    attackNameInput.value = '';
+    attackBonusInput.value = '';
+    attackReachInput.value = '';
+    attackDamageDiceInput.value = '';
+    attackDamageBonusInput.value = '';
+    attackExtraInput.value = '';
+    attackTypeSelect.value = 'melee';
+    attackDamageTypeSelect.value = 'slashing';
 }
 
 // Download card as image
 async function downloadCard() {
     try {
+        console.log('Starting download process...');
+        
+        // First, ensure the card is generated with latest data
+        generateCard();
+        
+        // Wait a moment for the card to update
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Check if html2canvas is already loaded
+        if (typeof html2canvas !== 'undefined') {
+            console.log('html2canvas already loaded, proceeding...');
+            await processCardDownload();
+            return;
+        }
+        
+        console.log('Loading html2canvas library...');
+        
         // Import html2canvas dynamically
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
         document.head.appendChild(script);
         
-        script.onload = function() {
-            const cardElement = document.getElementById('monster-card');
-            
-            html2canvas(cardElement, {
-                backgroundColor: null,
-                scale: 2,
-                useCORS: true,
-                allowTaint: true
-            }).then(canvas => {
-                // Create download link
-                const link = document.createElement('a');
-                link.download = `${nameInput.value || 'monster'}-card.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-            }).catch(error => {
-                console.error('Error generating image:', error);
-                alert('Error generating image. Please try again.');
-            });
+        script.onload = async function() {
+            console.log('html2canvas loaded successfully');
+            await processCardDownload();
         };
         
         script.onerror = function() {
+            console.error('Failed to load html2canvas library');
             alert('Error loading image generation library. Please check your internet connection.');
         };
     } catch (error) {
-        console.error('Error downloading card:', error);
+        console.error('Error in download setup:', error.message || error);
+        console.error('Stack trace:', error.stack);
+        alert('Error downloading card: ' + (error.message || 'Unknown error'));
+    }
+}
+
+async function processCardDownload() {
+    try {
+        console.log('Starting card processing...');
+        
+        // Get the card elements
+        const frontCard = document.getElementById('monster-card');
+        const backCard = document.getElementById('monster-card-back');
+        
+        if (!frontCard || !backCard) {
+            console.error('Card elements not found');
+            throw new Error('Card elements not found');
+        }
+        
+        console.log('Card elements found, creating download container...');
+                
+                // Create a container for both cards side by side
+                const downloadContainer = document.createElement('div');
+                downloadContainer.style.cssText = `
+                    display: flex;
+                    gap: 20px;
+                    background: white;
+                    padding: 20px;
+                    position: fixed;
+                    left: -9999px;
+                    top: -9999px;
+                    z-index: -1000;
+                `;
+                
+                // Clone front card and reset transforms
+                const frontClone = frontCard.cloneNode(true);
+                frontClone.style.cssText = `
+                    margin: 0;
+                    transform: none;
+                    position: relative;
+                    width: 450px;
+                    height: 900px;
+                `;
+                
+                // Clone back card and reset transforms
+                const backClone = backCard.cloneNode(true);
+                backClone.style.cssText = `
+                    margin: 0;
+                    transform: none;
+                    position: relative;
+                    width: 450px;
+                    height: 900px;
+                `;
+                
+                // Add both cards to container
+                downloadContainer.appendChild(frontClone);
+                downloadContainer.appendChild(backClone);
+                
+                // Temporarily add to body
+                document.body.appendChild(downloadContainer);
+                
+                // Wait for rendering and process images
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Convert all images to data URLs for better compatibility
+                const images = downloadContainer.querySelectorAll('img');
+                for (let img of images) {
+                    if (img.src && !img.src.startsWith('data:') && img.src.trim() !== '' && isValidImageUrl(img.src)) {
+                        try {
+                            console.log('Processing image:', img.src);
+                            const dataUrl = await convertImageToDataUrl(img.src);
+                            if (dataUrl) {
+                                img.src = dataUrl;
+                            }
+                        } catch (error) {
+                            console.warn('Could not convert image:', img.src, error);
+                            // Try to ensure the image is loaded at least
+                            await new Promise((resolve, reject) => {
+                                if (img.complete) {
+                                    resolve();
+                                } else {
+                                    img.onload = resolve;
+                                    img.onerror = resolve; // Continue even if image fails
+                                    setTimeout(resolve, 2000); // Timeout after 2 seconds
+                                }
+                            });
+                        }
+                    }
+                }
+                
+                // Wait another moment for images to settle
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                // Generate image with html2canvas
+                const canvas = await html2canvas(downloadContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: true,
+                    width: downloadContainer.offsetWidth,
+                    height: downloadContainer.offsetHeight,
+                    onclone: function(clonedDoc) {
+                        // Ensure all images are visible in the cloned document
+                        const clonedImages = clonedDoc.querySelectorAll('img');
+                        clonedImages.forEach(img => {
+                            if (img.style.display === 'none') {
+                                img.style.display = 'block';
+                            }
+                        });
+                    }
+                });
+                
+                // Remove temporary container
+                document.body.removeChild(downloadContainer);
+                
+                // Create download link
+                const link = document.createElement('a');
+                link.download = `${nameInput.value || 'monster'}-card-both-sides.png`;
+                link.href = canvas.toDataURL('image/png');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                console.log('Download completed successfully');
+                
+    } catch (error) {
+        console.error('Error generating image:', error);
         alert('Error downloading card. Please try again.');
     }
+}
+
+// Helper function to validate if a URL is a valid external image URL
+function isValidImageUrl(url) {
+    try {
+        const urlObj = new URL(url);
+        // Skip localhost, file:// and invalid protocols
+        if (urlObj.hostname === 'localhost' || 
+            urlObj.hostname === '127.0.0.1' || 
+            urlObj.protocol === 'file:' ||
+            !urlObj.protocol.startsWith('http')) {
+            return false;
+        }
+        // Check if it looks like an image URL
+        const path = urlObj.pathname.toLowerCase();
+        return path.includes('.jpg') || path.includes('.jpeg') || 
+               path.includes('.png') || path.includes('.gif') || 
+               path.includes('.webp') || path.includes('.svg') ||
+               url.includes('image') || url.includes('avatar') || url.includes('thumbnail');
+    } catch (error) {
+        return false;
+    }
+}
+
+// Helper function to convert image URL to data URL
+async function convertImageToDataUrl(imageUrl) {
+    return new Promise((resolve, reject) => {
+        // Try multiple methods to load the image
+        
+        // Method 1: Direct loading with CORS
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = function() {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                ctx.drawImage(img, 0, 0);
+                const dataUrl = canvas.toDataURL('image/png');
+                resolve(dataUrl);
+            } catch (error) {
+                console.warn('Canvas conversion failed, trying proxy method...');
+                tryProxyMethod();
+            }
+        };
+        
+        img.onerror = function() {
+            console.warn('Direct image load failed for:', imageUrl);
+            tryProxyMethod();
+        };
+        
+        // Method 2: Using a CORS proxy
+        function tryProxyMethod() {
+            console.log('Attempting proxy method for:', imageUrl);
+            // Try a more reliable proxy service
+            fetch(`https://cors-anywhere.herokuapp.com/${imageUrl}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.blob())
+                .then(blob => {
+                    const reader = new FileReader();
+                    reader.onload = function() {
+                        resolve(reader.result);
+                    };
+                    reader.onerror = function() {
+                        tryFallbackMethod();
+                    };
+                    reader.readAsDataURL(blob);
+                })
+                .catch((error) => {
+                    console.warn('Proxy method failed:', error.message);
+                    tryFallbackMethod();
+                });
+        }
+        
+        // Method 3: Simple fallback - accept that some images can't be converted
+        function tryFallbackMethod() {
+            console.log('Using fallback - keeping original image URL');
+            // Instead of trying another proxy, just return null to keep original image
+            // The image will still appear in the download, just not as a data URL
+            resolve(null);
+        }
+        
+        // Add timeout
+        setTimeout(() => {
+            reject(new Error('Image load timeout'));
+        }, 10000); // 10 second timeout
+        
+        // Start the process
+        img.src = imageUrl;
+    });
+}
+
+// Helper function to preload images in the card
+async function preloadCardImages() {
+    const cardImages = document.querySelectorAll('#monster-card img, #monster-card-back img');
+    const promises = [];
+    
+    cardImages.forEach(img => {
+        if (img.src && !img.src.startsWith('data:') && img.src.trim() !== '') {
+            promises.push(
+                new Promise((resolve) => {
+                    if (img.complete && img.naturalWidth > 0) {
+                        resolve();
+                    } else {
+                        img.onload = resolve;
+                        img.onerror = resolve; // Continue even if image fails
+                        setTimeout(resolve, 3000); // Timeout after 3 seconds
+                    }
+                })
+            );
+        }
+    });
+    
+    return Promise.all(promises);
 }
 
 // Sample data for quick testing
@@ -783,6 +1461,9 @@ function loadSampleData() {
 // Event listeners
 generateBtn.addEventListener('click', generateCard);
 downloadBtn.addEventListener('click', downloadCard);
+addAttackBtn.addEventListener('click', showAttackForm);
+confirmAttackBtn.addEventListener('click', confirmAttack);
+cancelAttackBtn.addEventListener('click', cancelAttack);
 
 // Language change listener
 languageSelect.addEventListener('change', function() {
@@ -855,6 +1536,9 @@ document.addEventListener('DOMContentLoaded', () => {
     languageSelect.value = currentLanguage;
     translate(currentLanguage);
     
+    // Load preset monsters
+    loadPresetMonsters();
+    
     // Uncomment the line below to load sample data automatically
     // loadSampleData();
     
@@ -873,6 +1557,110 @@ document.addEventListener('keydown', (e) => {
         generateCard();
     }
 });
+
+// Monster preset functionality
+let presetMonsters = [];
+const presetMonstersSelect = document.getElementById('preset-monsters');
+const loadMonsterBtn = document.getElementById('load-monster-btn');
+
+// Load monsters from JSON file
+async function loadPresetMonsters() {
+    try {
+        const response = await fetch('monsters.json');
+        const data = await response.json();
+        presetMonsters = data.monsters;
+        
+        // Populate the dropdown
+        presetMonstersSelect.innerHTML = '<option value="">-- Select a preset monster --</option>';
+        presetMonsters.forEach((monster, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = monster.name;
+            presetMonstersSelect.appendChild(option);
+        });
+        
+        console.log(`Loaded ${presetMonsters.length} preset monsters`);
+    } catch (error) {
+        console.warn('Could not load preset monsters:', error);
+    }
+}
+
+// Load selected monster data
+function loadSelectedMonster() {
+    const selectedIndex = presetMonstersSelect.value;
+    if (selectedIndex === '') return;
+    
+    const monster = presetMonsters[selectedIndex];
+    if (!monster) return;
+    
+    console.log('Loading monster:', monster.name);
+    console.log('Monster data:', monster);
+    
+    // Basic info
+    nameInput.value = monster.name;
+    crInput.value = monster.cr;
+    acInput.value = monster.ac;
+    hpInput.value = monster.hp;
+    speedInput.value = monster.speed;
+    
+    console.log('Basic info loaded:', {
+        name: nameInput.value,
+        cr: crInput.value,
+        ac: acInput.value
+    });
+    
+    // Type - fix custom type handling
+    if (monster.customType) {
+        typeInput.value = 'custom';
+        typeCustomInput.value = monster.customType;
+        typeCustomInput.style.display = 'block';
+    } else if (monster.type) {
+        typeInput.value = monster.type;
+        typeCustomInput.style.display = 'none';
+    }
+    
+    // Ability scores
+    strInput.value = monster.str;
+    dexInput.value = monster.dex;
+    conInput.value = monster.con;
+    intInput.value = monster.int;
+    wisInput.value = monster.wis;
+    chaInput.value = monster.cha;
+    
+    // Image
+    if (monster.image) {
+        imageInput.value = monster.image;
+    }
+    
+    // Abilities - clear first
+    abilitiesInput.value = '';
+    if (monster.abilities && monster.abilities.length > 0) {
+        abilitiesInput.value = monster.abilities.join('\n\n');
+    }
+    
+    // Actions - clear first
+    actionsInput.value = '';
+    if (monster.actions && monster.actions.length > 0) {
+        actionsInput.value = monster.actions.join('\n\n');
+    }
+    
+    // Card customization
+    if (monster.color) {
+        cardColorSelect.value = monster.color;
+    }
+    if (monster.logo) {
+        cardLogoSelect.value = monster.logo;
+    }
+    
+    // Generate the card with the loaded data
+    console.log('Calling generateCard() for monster:', monster.name);
+    generateCard();
+    
+    console.log('Monster loaded successfully:', monster.name);
+}
+
+// Event listeners
+loadMonsterBtn.addEventListener('click', loadSelectedMonster);
 
 // Export sample data function for easy access
 window.loadSampleData = loadSampleData;

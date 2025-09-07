@@ -24,6 +24,14 @@
                 <h2 data-translate="monster-info">Monster Information</h2>
                 <form id="monster-form">
                     <div class="form-group">
+                        <label for="preset-monsters">Quick Load Monster:</label>
+                        <select id="preset-monsters">
+                            <option value="">-- Select a preset monster --</option>
+                        </select>
+                        <button type="button" id="load-monster-btn" style="margin-left: 10px;">Load Monster</button>
+                    </div>
+                    
+                    <div class="form-group">
                         <label for="monster-name" data-translate="monster-name">Monster Name:</label>
                         <input type="text" id="monster-name" data-translate-placeholder="monster-name-placeholder" />
                     </div>
@@ -195,7 +203,7 @@
                         <div class="formatting-help" data-translate="formatting-help">
                             Use **bold**, *italic*, or ***bold italic*** for formatting
                         </div>
-                        <textarea id="special-abilities" rows="4" data-translate-placeholder="special-abilities-placeholder"></textarea>
+                        <textarea id="special-abilities" rows="3" data-translate-placeholder="special-abilities-placeholder"></textarea>
                     </div>
 
                     <div class="form-group">
@@ -203,7 +211,82 @@
                         <div class="formatting-help" data-translate="formatting-help">
                             Use **bold**, *italic*, or ***bold italic*** for formatting
                         </div>
-                        <textarea id="actions" rows="6" data-translate-placeholder="actions-placeholder"></textarea>
+                        
+                        <!-- Attack Builder Section -->
+                        <div class="attack-builder">
+                            <button type="button" id="add-attack-btn" class="attack-btn" data-translate="add-attack">Add Attack</button>
+                            
+                            <div class="attack-form" id="attack-form" style="display: none;">
+                                <div class="attack-row">
+                                    <div class="attack-field">
+                                        <label for="attack-name" data-translate="attack-name">Attack Name:</label>
+                                        <input type="text" id="attack-name" placeholder="e.g., Bite, Claw, Sword" />
+                                    </div>
+                                    <div class="attack-field">
+                                        <label for="attack-type" data-translate="attack-type">Type:</label>
+                                        <select id="attack-type">
+                                            <option value="melee" data-translate="attack-melee">Melee Weapon Attack</option>
+                                            <option value="ranged" data-translate="attack-ranged">Ranged Weapon Attack</option>
+                                            <option value="spell" data-translate="attack-spell">Spell Attack</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="attack-row">
+                                    <div class="attack-field">
+                                        <label for="attack-bonus" data-translate="attack-bonus">Attack Bonus:</label>
+                                        <input type="number" id="attack-bonus" placeholder="e.g., +7" min="-10" max="30" />
+                                    </div>
+                                    <div class="attack-field">
+                                        <label for="attack-reach" data-translate="attack-reach">Reach/Range:</label>
+                                        <input type="text" id="attack-reach" placeholder="e.g., 5 ft., 150/600 ft." />
+                                    </div>
+                                </div>
+                                
+                                <div class="attack-row">
+                                    <div class="attack-field">
+                                        <label for="attack-damage-dice" data-translate="attack-damage-dice">Damage Dice:</label>
+                                        <input type="text" id="attack-damage-dice" placeholder="e.g., 2d6" />
+                                    </div>
+                                    <div class="attack-field">
+                                        <label for="attack-damage-bonus" data-translate="attack-damage-bonus">Damage Bonus:</label>
+                                        <input type="number" id="attack-damage-bonus" placeholder="e.g., +4" min="-10" max="30" />
+                                    </div>
+                                </div>
+                                
+                                <div class="attack-row">
+                                    <div class="attack-field">
+                                        <label for="attack-damage-type" data-translate="attack-damage-type">Damage Type:</label>
+                                        <select id="attack-damage-type">
+                                            <option value="slashing">Slashing</option>
+                                            <option value="piercing">Piercing</option>
+                                            <option value="bludgeoning">Bludgeoning</option>
+                                            <option value="fire">Fire</option>
+                                            <option value="cold">Cold</option>
+                                            <option value="lightning">Lightning</option>
+                                            <option value="thunder">Thunder</option>
+                                            <option value="acid">Acid</option>
+                                            <option value="poison">Poison</option>
+                                            <option value="psychic">Psychic</option>
+                                            <option value="necrotic">Necrotic</option>
+                                            <option value="radiant">Radiant</option>
+                                            <option value="force">Force</option>
+                                        </select>
+                                    </div>
+                                    <div class="attack-field">
+                                        <label for="attack-extra" data-translate="attack-extra">Extra Effects:</label>
+                                        <input type="text" id="attack-extra" placeholder="e.g., target is grappled (DC 15)" />
+                                    </div>
+                                </div>
+                                
+                                <div class="attack-buttons">
+                                    <button type="button" id="confirm-attack" class="attack-btn confirm-btn" data-translate="confirm-attack">Confirm Attack</button>
+                                    <button type="button" id="cancel-attack" class="attack-btn cancel-btn" data-translate="cancel-attack">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <textarea id="actions" rows="4" data-translate-placeholder="actions-placeholder"></textarea>
                     </div>
 
                     <button type="button" id="generate-card" data-translate="generate-card">Generate Card</button>
