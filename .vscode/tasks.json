@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Launch D&D Card Maker",
+			"type": "shell",
+			"command": "start index.html",
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D&D Monster Card Maker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="language-selector">
+                <select id="language-select">
+                    <option value="en">🇺🇸 English</option>
+                    <option value="pt">🇧🇷 Português</option>
+                </select>
+            </div>
+            <h1 data-translate="app-title">D&D Monster Card Maker</h1>
+            <p data-translate="app-subtitle">Create MTG-style cards for your D&D monsters</p>
+        </header>
+
+        <main>
+            <div class="editor-section">
+                <h2 data-translate="monster-info">Monster Information</h2>
+                <form id="monster-form">
+                    <div class="form-group">
+                        <label for="monster-name" data-translate="monster-name">Monster Name:</label>
+                        <input type="text" id="monster-name" data-translate-placeholder="monster-name-placeholder" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="monster-type" data-translate="monster-type">Type & Size:</label>
+                        <select id="monster-type">
+                            <option value="aberration" data-translate="type-aberration">🧠 Aberration</option>
+                            <option value="beast" data-translate="type-beast">🐾 Beast</option>
+                            <option value="celestial" data-translate="type-celestial">☀ Celestial</option>
+                            <option value="construct" data-translate="type-construct">⚙ Construct</option>
+                            <option value="dragon" data-translate="type-dragon">🐲 Dragon</option>
+                            <option value="elemental" data-translate="type-elemental">🔥 Elemental</option>
+                            <option value="fey" data-translate="type-fey">🧚 Fey</option>
+                            <option value="fiend" data-translate="type-fiend">👹 Fiend</option>
+                            <option value="giant" data-translate="type-giant">⛰ Giant</option>
+                            <option value="humanoid" data-translate="type-humanoid">👤 Humanoid</option>
+                            <option value="monstrosity" data-translate="type-monstrosity">🐙 Monstrosity</option>
+                            <option value="ooze" data-translate="type-ooze">🟫 Ooze</option>
+                            <option value="plant" data-translate="type-plant">🌱 Plant</option>
+                            <option value="undead" data-translate="type-undead">☠ Undead</option>
+                            <option value="custom" data-translate="type-custom">📝 Custom</option>
+                        </select>
+                        <input type="text" id="monster-type-custom" style="display: none; margin-top: 10px;" data-translate-placeholder="monster-type-placeholder" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="armor-class" data-translate="armor-class">Armor Class:</label>
+                        <input type="text" id="armor-class" data-translate-placeholder="armor-class-placeholder" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hit-points" data-translate="hit-points">Hit Points:</label>
+                        <input type="text" id="hit-points" data-translate-placeholder="hit-points-placeholder" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="speed" data-translate="speed">Speed:</label>
+                        <input type="text" id="speed" data-translate-placeholder="speed-placeholder" />
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-group">
+                            <label for="strength" data-translate="str">STR:</label>
+                            <input type="number" id="strength" placeholder="10" />
+                        </div>
+                        <div class="stat-group">
+                            <label for="dexterity" data-translate="dex">DEX:</label>
+                            <input type="number" id="dexterity" placeholder="10" />
+                        </div>
+                        <div class="stat-group">
+                            <label for="constitution" data-translate="con">CON:</label>
+                            <input type="number" id="constitution" placeholder="10" />
+                        </div>
+                        <div class="stat-group">
+                            <label for="intelligence" data-translate="int">INT:</label>
+                            <input type="number" id="intelligence" placeholder="10" />
+                        </div>
+                        <div class="stat-group">
+                            <label for="wisdom" data-translate="wis">WIS:</label>
+                            <input type="number" id="wisdom" placeholder="10" />
+                        </div>
+                        <div class="stat-group">
+                            <label for="charisma" data-translate="cha">CHA:</label>
+                            <input type="number" id="charisma" placeholder="10" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="challenge-rating" data-translate="challenge-rating">Challenge Rating:</label>
+                        <input type="text" id="challenge-rating" data-translate-placeholder="challenge-rating-placeholder" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="monster-image" data-translate="monster-image">Image URL:</label>
+                        <input type="url" id="monster-image" data-translate-placeholder="monster-image-placeholder" />
+                        
+                        <label for="monster-image-upload" data-translate="monster-image-upload">Or Upload Image:</label>
+                        <input type="file" id="monster-image-upload" accept="image/*" data-translate-placeholder="monster-upload-placeholder" />
+                    </div>
+
+                    <div class="card-customization">
+                        <h3 data-translate="card-customization">Card Customization</h3>
+                        
+                        <div class="form-group">
+                            <label for="card-color" data-translate="card-color">Card Color Theme:</label>
+                            <select id="card-color">
+                                <option value="classic" data-translate="color-classic">Classic Brown</option>
+                                <option value="red" data-translate="color-red">Red (Fire/Dragons)</option>
+                                <option value="blue" data-translate="color-blue">Blue (Water/Ice)</option>
+                                <option value="green" data-translate="color-green">Green (Nature/Beasts)</option>
+                                <option value="black" data-translate="color-black">Black (Undead/Fiends)</option>
+                                <option value="white" data-translate="color-white">White (Celestials/Light)</option>
+                                <option value="purple" data-translate="color-purple">Purple (Aberrations/Psychic)</option>
+                                <option value="metal" data-translate="color-metal">Metal (Constructs/Machines)</option>
+                                <option value="gold" data-translate="color-gold">Gold (Legendary)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="card-logo" data-translate="card-logo">Card Type Logo:</label>
+                            <select id="card-logo">
+                                <option value="" data-translate="logo-none">No Logo</option>
+                                <option value="🔥">🔥 <span data-translate="logo-fire">Fire</span></option>
+                                <option value="💧">💧 <span data-translate="logo-water">Water</span></option>
+                                <option value="🌿">🌿 <span data-translate="logo-nature">Nature</span></option>
+                                <option value="⚡">⚡ <span data-translate="logo-lightning">Lightning</span></option>
+                                <option value="🔨">🔨 <span data-translate="logo-hammer">Hammer/Forge</span></option>
+                                <option value="⚔️">⚔️ <span data-translate="logo-combat">Combat</span></option>
+                                <option value="🛡️">🛡️ <span data-translate="logo-defense">Defense</span></option>
+                                <option value="💀">💀 <span data-translate="logo-death">Death/Undead</span></option>
+                                <option value="✨">✨ <span data-translate="logo-magic">Magic</span></option>
+                                <option value="👑">👑 <span data-translate="logo-royal">Royal/Noble</span></option>
+                                <option value="🐉">🐉 <span data-translate="logo-dragon">Dragon</span></option>
+                                <option value="🌙">🌙 <span data-translate="logo-night">Night/Shadow</span></option>
+                                <option value="☀️">☀️ <span data-translate="logo-light">Light/Holy</span></option>
+                                <option value="🧠">🧠 <span data-translate="logo-mind">Mind/Psychic</span></option>
+                                <option value="⚙️">⚙️ <span data-translate="logo-mechanical">Mechanical</span></option>
+                            </select>
+                        </div>
+
+                        <div class="image-controls">
+                            <label data-translate="image-position">Image Position:</label>
+                            <div class="image-position-controls">
+                                <div class="position-group">
+                                    <label for="image-x" data-translate="horizontal">Horizontal:</label>
+                                    <input type="range" id="image-x" min="-100" max="100" value="0" />
+                                    <span id="image-x-value">0</span>
+                                </div>
+                                <div class="position-group">
+                                    <label for="image-y" data-translate="vertical">Vertical:</label>
+                                    <input type="range" id="image-y" min="-100" max="100" value="0" />
+                                    <span id="image-y-value">0</span>
+                                </div>
+                                <div class="position-group">
+                                    <label for="image-scale" data-translate="scale">Scale:</label>
+                                    <input type="range" id="image-scale" min="25" max="300" value="100" />
+                                    <span id="image-scale-value">100%</span>
+                                </div>
+                                <button type="button" id="reset-image-position" class="reset-btn" data-translate="reset-position">Reset Position</button>
+                            </div>
+                        </div>
+
+                        <div class="card-back-options">
+                            <h4 data-translate="card-back-options">Card Back Options</h4>
+                            
+                            <div class="form-group">
+                                <label for="card-back-type" data-translate="card-back-type">Back Type:</label>
+                                <select id="card-back-type">
+                                    <option value="logo" data-translate="back-logo">Logo Only (same color)</option>
+                                    <option value="image" data-translate="back-image">Custom Image</option>
+                                    <option value="empty" data-translate="back-empty">Empty/Transparent</option>
+                                    <option value="text-overflow" data-translate="back-text-overflow">Text Overflow (for long descriptions)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="back-image-group" style="display: none;">
+                                <label for="back-image-url" data-translate="back-image-url">Back Image URL:</label>
+                                <input type="url" id="back-image-url" data-translate-placeholder="back-image-placeholder" />
+                                
+                                <label for="back-image-upload" data-translate="back-image-upload">Or Upload Image:</label>
+                                <input type="file" id="back-image-upload" accept="image/*" data-translate-placeholder="back-upload-placeholder" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="special-abilities" data-translate="special-abilities">Special Abilities:</label>
+                        <div class="formatting-help" data-translate="formatting-help">
+                            Use **bold**, *italic*, or ***bold italic*** for formatting
+                        </div>
+                        <textarea id="special-abilities" rows="4" data-translate-placeholder="special-abilities-placeholder"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="actions" data-translate="actions">Actions:</label>
+                        <div class="formatting-help" data-translate="formatting-help">
+                            Use **bold**, *italic*, or ***bold italic*** for formatting
+                        </div>
+                        <textarea id="actions" rows="6" data-translate-placeholder="actions-placeholder"></textarea>
+                    </div>
+
+                    <button type="button" id="generate-card" data-translate="generate-card">Generate Card</button>
+                </form>
+            </div>
+
+            <div class="card-preview">
+                <h2 data-translate="card-preview">Card Preview</h2>
+                <div class="card-container">
+                    <div class="cards-display">
+                        <div id="monster-card" class="monster-card">
+                            <div class="card-header">
+                                <div class="card-name-section">
+                                    <div class="ac-shield">🛡️ <span id="card-ac">--</span></div>
+                                    <h3 class="card-name">Monster Name</h3>
+                                    <div class="card-logo" id="card-logo-display"></div>
+                                </div>
+                                <div class="card-cost">CR</div>
+                            </div>
+                            
+                            <div class="card-type">
+                                <span id="card-type-text">Creature Type</span>
+                            </div>
+                            
+                            <div class="monster-image-container">
+                                <img src="" alt="Monster Image" id="card-image" class="monster-image" />
+                            </div>
+                            
+                            <div class="card-stats">
+                                <div class="hp-speed">
+                                    <div>HP: <span id="card-hp">--</span></div>
+                                    <div>Speed: <span id="card-speed">--</span></div>
+                                </div>
+                                <div class="abilities">
+                                    <div class="ability-scores">
+                                        <div class="ability-column">
+                                            <div class="ability-score-header">
+                                                <span></span>
+                                                <span></span>
+                                                <span>mod</span>
+                                                <span>save</span>
+                                            </div>
+                                            <div class="ability-score">
+                                                <span data-translate="str_abbrev">STR</span>
+                                                <span id="card-str">10</span>
+                                                <span id="card-str-mod">+0</span>
+                                                <span id="card-str-save">+0</span>
+                                            </div>
+                                            <div class="ability-score">
+                                                <span data-translate="dex_abbrev">DEX</span>
+                                                <span id="card-dex">10</span>
+                                                <span id="card-dex-mod">+0</span>
+                                                <span id="card-dex-save">+0</span>
+                                            </div>
+                                            <div class="ability-score">
+                                                <span data-translate="con_abbrev">CON</span>
+                                                <span id="card-con">10</span>
+                                                <span id="card-con-mod">+0</span>
+                                                <span id="card-con-save">+0</span>
+                                            </div>
+                                        </div>
+                                        <div class="ability-column">
+                                            <div class="ability-score-header">
+                                                <span></span>
+                                                <span></span>
+                                                <span>mod</span>
+                                                <span>save</span>
+                                            </div>
+                                            <div class="ability-score">
+                                                <span data-translate="int_abbrev">INT</span>
+                                                <span id="card-int">10</span>
+                                                <span id="card-int-mod">+0</span>
+                                                <span id="card-int-save">+0</span>
+                                            </div>
+                                            <div class="ability-score">
+                                                <span data-translate="wis_abbrev">WIS</span>
+                                                <span id="card-wis">10</span>
+                                                <span id="card-wis-mod">+0</span>
+                                                <span id="card-wis-save">+0</span>
+                                            </div>
+                                            <div class="ability-score">
+                                                <span data-translate="cha_abbrev">CHA</span>
+                                                <span id="card-cha">10</span>
+                                                <span id="card-cha-mod">+0</span>
+                                                <span id="card-cha-save">+0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-abilities">
+                                <div id="card-special-abilities"></div>
+                            </div>
+                            
+                            <div class="card-actions">
+                                <div id="card-actions-list"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card Back -->
+                        <div id="monster-card-back" class="monster-card card-back">
+                            <div class="card-back-content">
+                                <div class="card-back-logo" id="card-back-logo"></div>
+                                <div class="card-back-image-container" id="card-back-image-container" style="display: none;">
+                                    <img src="" alt="Card Back Image" id="card-back-image" class="card-back-image" />
+                                </div>
+                                <div class="card-back-text" id="card-back-text" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-container">
+                        <button id="download-card" data-translate="download-card">Download Card</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
