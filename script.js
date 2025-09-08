@@ -8,10 +8,10 @@ const languageSelect = document.getElementById('language-select');
 const translations = {
     en: {
         'app-title': 'D&D Monster Card Maker',
-        'app-subtitle': 'Create MTG-style cards for your D&D monsters',
-        'monster-info': 'Monster Information',
-        'monster-name': 'Monster Name:',
-        'monster-name-placeholder': 'Enter monster name',
+        'app-subtitle': 'Craft legendary creature cards for your adventures',
+        'monster-info': 'Creature Details',
+        'monster-name': 'Creature Name:',
+        'monster-name-placeholder': 'Enter the creature\'s name',
         'monster-type': 'Type & Size:',
         'monster-type-placeholder': 'e.g., Large dragon, chaotic evil',
         'type-aberration': '🧠 Aberration',
@@ -121,7 +121,7 @@ const translations = {
         'cancel-attack': 'Cancel'
     },
     pt: {
-        'app-title': 'Criador de Cartas de Monstros D&D',
+        'app-title': 'D&D Monster Card Maker',
         'app-subtitle': 'Crie cartas estilo MTG para seus monstros de D&D',
         'monster-info': 'Informações do Monstro',
         'monster-name': 'Nome do Monstro:',
@@ -310,6 +310,12 @@ const intInput = document.getElementById('intelligence');
 const wisInput = document.getElementById('wisdom');
 const chaInput = document.getElementById('charisma');
 
+// AC Calculator elements
+const acBaseInput = document.getElementById('ac-base');
+
+// Track whether AC was manually entered by user
+let acManuallyEntered = false;
+
 // Card elements
 const monsterCard = document.getElementById('monster-card');
 const cardName = document.querySelector('.card-name');
@@ -369,6 +375,62 @@ function formatAbilityScore(score) {
 // Format modifier with + or -
 function formatModifier(modifier) {
     return modifier >= 0 ? `+${modifier}` : `${modifier}`;
+}
+
+// Calculate AC automatically (only if not manually entered)
+function calculateAC() {
+    // Don't override manually entered AC values
+    if (acManuallyEntered) {
+        return;
+    }
+    
+    const dex = parseInt(dexInput.value) || 10;
+    const dexMod = getAbilityModifier(dex);
+    const baseAC = parseInt(acBaseInput?.value) || 10;
+    const calculatedAC = baseAC + dexMod;
+    
+    // Update AC field with calculated value
+    acInput.value = calculatedAC.toString();
+    updateCard();
+}
+
+// Auto-calculate AC when dexterity changes
+function setupACCalculator() {
+    // Track manual AC input
+    if (acInput) {
+        acInput.addEventListener('input', () => {
+            // Mark AC as manually entered when user types in the field
+            acManuallyEntered = acInput.value.trim() !== '';
+        });
+        
+        // Reset manual flag when AC field is cleared
+        acInput.addEventListener('change', () => {
+            if (acInput.value.trim() === '') {
+                acManuallyEntered = false;
+                // Auto-calculate if DEX is available
+                if (dexInput.value) {
+                    calculateAC();
+                }
+            }
+        });
+    }
+    
+    if (dexInput) {
+        dexInput.addEventListener('input', () => {
+            // Auto-calculate AC when DEX is entered, but only if AC is empty or not manually entered
+            if (dexInput.value && !acManuallyEntered) {
+                calculateAC();
+            }
+        });
+    }
+    
+    if (acBaseInput) {
+        acBaseInput.addEventListener('input', () => {
+            if (!acManuallyEntered) {
+                calculateAC();
+            }
+        });
+    }
 }
 
 // Format text with markdown-style formatting
@@ -671,6 +733,64 @@ function detectContentOverflow() {
     
     console.log(`Total estimated lines: ${totalLines}, Max allowed: ${maxLinesOnFront}`);
     return totalLines > maxLinesOnFront;
+}
+
+// Function to distribute content across multiple cards
+function distributeContentAcrossCards() {
+    const maxLinesPerCard = 18;
+    let cards = [];
+    let currentCard = { abilities: [], actions: [], lines: 0 };
+    
+    // Collect all content
+    let allContent = [];
+    
+    // Add abilities
+    if (abilitiesInput.value.trim()) {
+        const abilities = abilitiesInput.value.split('\n').filter(line => line.trim());
+        abilities.forEach(ability => {
+            allContent.push({
+                type: 'ability',
+                text: ability,
+                lines: Math.ceil(ability.length / 50)
+            });
+        });
+    }
+    
+    // Add actions
+    if (actionsInput.value.trim()) {
+        const actions = actionsInput.value.split('\n').filter(line => line.trim());
+        actions.forEach(action => {
+            allContent.push({
+                type: 'action',
+                text: action,
+                lines: Math.ceil(action.length / 50)
+            });
+        });
+    }
+    
+    // Distribute content across cards
+    allContent.forEach(item => {
+        // If adding this item would exceed the limit, start a new card
+        if (currentCard.lines + item.lines > maxLinesPerCard && currentCard.lines > 0) {
+            cards.push(currentCard);
+            currentCard = { abilities: [], actions: [], lines: 0 };
+        }
+        
+        // Add item to current card
+        if (item.type === 'ability') {
+            currentCard.abilities.push(item.text);
+        } else {
+            currentCard.actions.push(item.text);
+        }
+        currentCard.lines += item.lines;
+    });
+    
+    // Add the last card if it has content
+    if (currentCard.lines > 0) {
+        cards.push(currentCard);
+    }
+    
+    return cards;
 }
 
 // Function to get overflow text content
@@ -1138,126 +1258,263 @@ async function processCardDownload() {
     try {
         console.log('Starting card processing...');
         
-        // Get the card elements
-        const frontCard = document.getElementById('monster-card');
-        const backCard = document.getElementById('monster-card-back');
+        // Check if we need multiple cards
+        const hasOverflow = detectContentOverflow();
         
-        if (!frontCard || !backCard) {
-            console.error('Card elements not found');
-            throw new Error('Card elements not found');
+        if (hasOverflow) {
+            console.log('Content overflow detected, generating multiple cards...');
+            await processMultipleCardsDownload();
+        } else {
+            console.log('Normal content, generating standard card pair...');
+            await processSingleCardDownload();
         }
         
-        console.log('Card elements found, creating download container...');
-                
-                // Create a container for both cards side by side
-                const downloadContainer = document.createElement('div');
-                downloadContainer.style.cssText = `
-                    display: flex;
-                    gap: 20px;
-                    background: white;
-                    padding: 20px;
-                    position: fixed;
-                    left: -9999px;
-                    top: -9999px;
-                    z-index: -1000;
-                `;
-                
-                // Clone front card and reset transforms
-                const frontClone = frontCard.cloneNode(true);
-                frontClone.style.cssText = `
-                    margin: 0;
-                    transform: none;
-                    position: relative;
-                    width: 450px;
-                    height: 900px;
-                `;
-                
-                // Clone back card and reset transforms
-                const backClone = backCard.cloneNode(true);
-                backClone.style.cssText = `
-                    margin: 0;
-                    transform: none;
-                    position: relative;
-                    width: 450px;
-                    height: 900px;
-                `;
-                
-                // Add both cards to container
-                downloadContainer.appendChild(frontClone);
-                downloadContainer.appendChild(backClone);
-                
-                // Temporarily add to body
-                document.body.appendChild(downloadContainer);
-                
-                // Wait for rendering and process images
-                await new Promise(resolve => setTimeout(resolve, 100));
-                
-                // Convert all images to data URLs for better compatibility
-                const images = downloadContainer.querySelectorAll('img');
-                for (let img of images) {
-                    if (img.src && !img.src.startsWith('data:') && img.src.trim() !== '' && isValidImageUrl(img.src)) {
-                        try {
-                            console.log('Processing image:', img.src);
-                            const dataUrl = await convertImageToDataUrl(img.src);
-                            if (dataUrl) {
-                                img.src = dataUrl;
-                            }
-                        } catch (error) {
-                            console.warn('Could not convert image:', img.src, error);
-                            // Try to ensure the image is loaded at least
-                            await new Promise((resolve, reject) => {
-                                if (img.complete) {
-                                    resolve();
-                                } else {
-                                    img.onload = resolve;
-                                    img.onerror = resolve; // Continue even if image fails
-                                    setTimeout(resolve, 2000); // Timeout after 2 seconds
-                                }
-                            });
-                        }
-                    }
+    } catch (error) {
+        console.error('Error in card processing:', error.message || error);
+        console.error('Stack trace:', error.stack);
+        alert('Error processing card: ' + (error.message || 'Unknown error'));
+    }
+}
+
+async function processSingleCardDownload() {
+    // Get the card elements
+    const frontCard = document.getElementById('monster-card');
+    const backCard = document.getElementById('monster-card-back');
+    
+    if (!frontCard || !backCard) {
+        console.error('Card elements not found');
+        throw new Error('Card elements not found');
+    }
+    
+    console.log('Card elements found, creating download container...');
+    
+    // Create a container for both cards side by side
+    const downloadContainer = document.createElement('div');
+    downloadContainer.style.cssText = `
+        display: flex;
+        gap: 20px;
+        background: white;
+        padding: 20px;
+        position: fixed;
+        left: -9999px;
+        top: -9999px;
+        z-index: -1000;
+    `;
+    
+    // Clone front card and reset transforms
+    const frontClone = frontCard.cloneNode(true);
+    frontClone.style.cssText = `
+        margin: 0;
+        transform: none;
+        position: relative;
+        width: 450px;
+        height: 900px;
+    `;
+    
+    // Clone back card and reset transforms
+    const backClone = backCard.cloneNode(true);
+    backClone.style.cssText = `
+        margin: 0;
+        transform: none;
+        position: relative;
+        width: 450px;
+        height: 900px;
+    `;
+    
+    // Add both cards to container
+    downloadContainer.appendChild(frontClone);
+    downloadContainer.appendChild(backClone);
+    
+    await finalizeCardDownload(downloadContainer, 'both-sides');
+}
+
+async function processMultipleCardsDownload() {
+    const cards = distributeContentAcrossCards();
+    console.log(`Creating ${cards.length + 1} cards (1 front + ${cards.length} content cards)...`);
+    
+    // Create main container for all cards
+    const downloadContainer = document.createElement('div');
+    downloadContainer.style.cssText = `
+        display: flex;
+        gap: 20px;
+        background: white;
+        padding: 20px;
+        position: fixed;
+        left: -9999px;
+        top: -9999px;
+        z-index: -1000;
+        flex-wrap: wrap;
+        max-width: 1400px;
+    `;
+    
+    // Get the front card (with basic stats only)
+    const frontCard = document.getElementById('monster-card');
+    const frontClone = frontCard.cloneNode(true);
+    
+    // Clear abilities and actions from front card clone to show only basic stats
+    const frontAbilities = frontClone.querySelector('.abilities-section');
+    const frontActions = frontClone.querySelector('.actions-section');
+    if (frontAbilities) frontAbilities.innerHTML = '';
+    if (frontActions) frontActions.innerHTML = '';
+    
+    frontClone.style.cssText = `
+        margin: 0;
+        transform: none;
+        position: relative;
+        width: 450px;
+        height: 900px;
+    `;
+    downloadContainer.appendChild(frontClone);
+    
+    // Create content cards
+    for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        const contentCard = createContentCard(card, i + 2); // Start numbering from 2
+        downloadContainer.appendChild(contentCard);
+    }
+    
+    await finalizeCardDownload(downloadContainer, 'multiple-cards');
+}
+
+function createContentCard(cardData, cardNumber) {
+    // Create a card container
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'monster-card';
+    cardDiv.style.cssText = `
+        margin: 0;
+        transform: none;
+        position: relative;
+        width: 450px;
+        height: 900px;
+        background: linear-gradient(135deg, #4a4a4a 0%, #2d2d2d 100%);
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        color: white;
+        font-family: 'Cinzel', serif;
+        display: flex;
+        flex-direction: column;
+        border: 3px solid #d4af37;
+    `;
+    
+    // Create header
+    const header = document.createElement('div');
+    header.innerHTML = `
+        <div style="background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); padding: 15px; text-align: center;">
+            <h2 style="margin: 0; font-size: 1.5rem; color: #2d1810;">${nameInput.value || 'Monster'} - Part ${cardNumber}</h2>
+        </div>
+    `;
+    cardDiv.appendChild(header);
+    
+    // Create content area
+    const content = document.createElement('div');
+    content.style.cssText = `
+        padding: 20px;
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    `;
+    
+    // Add abilities if any
+    if (cardData.abilities.length > 0) {
+        const abilitiesSection = document.createElement('div');
+        abilitiesSection.innerHTML = `
+            <h3 style="color: #d4af37; margin-bottom: 10px; font-size: 1.2rem;">Special Abilities</h3>
+            <div style="font-size: 0.9rem; line-height: 1.4;">
+                ${cardData.abilities.map(ability => `<p style="margin-bottom: 8px;">${formatText(ability)}</p>`).join('')}
+            </div>
+        `;
+        content.appendChild(abilitiesSection);
+    }
+    
+    // Add actions if any
+    if (cardData.actions.length > 0) {
+        const actionsSection = document.createElement('div');
+        actionsSection.innerHTML = `
+            <h3 style="color: #d4af37; margin-bottom: 10px; font-size: 1.2rem; margin-top: 20px;">Actions</h3>
+            <div style="font-size: 0.9rem; line-height: 1.4;">
+                ${cardData.actions.map(action => `<p style="margin-bottom: 8px;">${formatText(action)}</p>`).join('')}
+            </div>
+        `;
+        content.appendChild(actionsSection);
+    }
+    
+    cardDiv.appendChild(content);
+    return cardDiv;
+}
+
+async function finalizeCardDownload(downloadContainer, type) {
+    // Temporarily add to body
+    document.body.appendChild(downloadContainer);
+    
+    // Wait for rendering and process images
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Convert all images to data URLs for better compatibility
+    const images = downloadContainer.querySelectorAll('img');
+    for (let img of images) {
+        if (img.src && !img.src.startsWith('data:') && img.src.trim() !== '' && isValidImageUrl(img.src)) {
+            try {
+                console.log('Processing image:', img.src);
+                const dataUrl = await convertImageToDataUrl(img.src);
+                if (dataUrl) {
+                    img.src = dataUrl;
                 }
-                
-                // Wait another moment for images to settle
-                await new Promise(resolve => setTimeout(resolve, 200));
-                
-                // Generate image with html2canvas
-                const canvas = await html2canvas(downloadContainer, {
-                    backgroundColor: '#ffffff',
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: true,
-                    width: downloadContainer.offsetWidth,
-                    height: downloadContainer.offsetHeight,
-                    onclone: function(clonedDoc) {
-                        // Ensure all images are visible in the cloned document
-                        const clonedImages = clonedDoc.querySelectorAll('img');
-                        clonedImages.forEach(img => {
-                            if (img.style.display === 'none') {
-                                img.style.display = 'block';
-                            }
-                        });
+            } catch (error) {
+                console.warn('Could not convert image:', img.src, error);
+                // Try to ensure the image is loaded at least
+                await new Promise((resolve, reject) => {
+                    if (img.complete) {
+                        resolve();
+                    } else {
+                        img.onload = resolve;
+                        img.onerror = resolve; // Continue even if image fails
+                        setTimeout(resolve, 2000); // Timeout after 2 seconds
                     }
                 });
-                
-                // Remove temporary container
-                document.body.removeChild(downloadContainer);
-                
-                // Create download link
-                const link = document.createElement('a');
-                link.download = `${nameInput.value || 'monster'}-card-both-sides.png`;
-                link.href = canvas.toDataURL('image/png');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                console.log('Download completed successfully');
-                
-    } catch (error) {
-        console.error('Error generating image:', error);
-        alert('Error downloading card. Please try again.');
+            }
+        }
     }
+    
+    // Wait another moment for images to settle
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Generate image with html2canvas
+    const canvas = await html2canvas(downloadContainer, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: true,
+        width: downloadContainer.offsetWidth,
+        height: downloadContainer.offsetHeight,
+        onclone: function(clonedDoc) {
+            // Ensure all images are visible in the cloned document
+            const clonedImages = clonedDoc.querySelectorAll('img');
+            clonedImages.forEach(img => {
+                if (img.style.display === 'none') {
+                    img.style.display = 'block';
+                }
+            });
+        }
+    });
+    
+    // Remove temporary container
+    document.body.removeChild(downloadContainer);
+    
+    // Create download link
+    const link = document.createElement('a');
+    const filename = type === 'multiple-cards' 
+        ? `${nameInput.value || 'monster'}-cards-complete.png`
+        : `${nameInput.value || 'monster'}-card-both-sides.png`;
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log('Download completed successfully');
 }
 
 // Helper function to validate if a URL is a valid external image URL
@@ -1381,6 +1638,9 @@ async function preloadCardImages() {
 
 // Sample data for quick testing
 function loadSampleData() {
+    // Reset manual AC flag when loading sample data
+    acManuallyEntered = false;
+    
     if (currentLanguage === 'pt') {
         // Portuguese sample data
         nameInput.value = 'Dragão Vermelho Ancião';
@@ -1474,6 +1734,9 @@ languageSelect.addEventListener('change', function() {
 cardColorSelect.addEventListener('change', generateCard);
 cardLogoSelect.addEventListener('change', generateCard);
 
+// Setup AC calculator
+setupACCalculator();
+
 // Creature type change listener
 typeInput.addEventListener('change', function() {
     typeCustomInput.style.display = this.value === 'custom' ? 'block' : 'none';
@@ -1563,26 +1826,112 @@ let presetMonsters = [];
 const presetMonstersSelect = document.getElementById('preset-monsters');
 const loadMonsterBtn = document.getElementById('load-monster-btn');
 
-// Load monsters from JSON file
+// Check if creatures folder exists and load monsters from multiple JSON files
 async function loadPresetMonsters() {
     try {
-        const response = await fetch('monsters.json');
-        const data = await response.json();
-        presetMonsters = data.monsters;
+        // First check if creatures folder exists by trying to fetch one file
+        const testResponse = await fetch('creatures/beasts.json');
+        if (!testResponse.ok) {
+            // Creatures folder doesn't exist, hide the preset group
+            console.log('Creatures folder not found, hiding preset monsters section');
+            hidePresetMonstersSection();
+            return;
+        }
         
-        // Populate the dropdown
-        presetMonstersSelect.innerHTML = '<option value="">-- Select a preset monster --</option>';
-        presetMonsters.forEach((monster, index) => {
+        const creatureTypes = ['beasts', 'constructs', 'dragons', 'humanoids', 'undead'];
+        presetMonsters = [];
+        let totalLoaded = 0;
+        let hasAnyCreatures = false;
+        
+        // Load all creature types
+        for (const type of creatureTypes) {
+            try {
+                const response = await fetch(`creatures/${type}.json`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Add type information to each monster
+                    data.monsters.forEach(monster => {
+                        monster.type = type;
+                    });
+                    
+                    presetMonsters.push(...data.monsters);
+                    totalLoaded += data.monsters.length;
+                    hasAnyCreatures = true;
+                    console.log(`Loaded ${data.monsters.length} ${type}`);
+                }
+            } catch (error) {
+                console.warn(`Could not load ${type}:`, error);
+            }
+        }
+        
+        if (hasAnyCreatures) {
+            // Populate the dropdown with organized groups
+            populateCreatureDropdown();
+            showPresetMonstersSection();
+            console.log(`Total loaded ${totalLoaded} preset monsters from ${creatureTypes.length} creature types`);
+        } else {
+            // No creatures loaded, hide the section
+            console.log('No creatures loaded, hiding preset monsters section');
+            hidePresetMonstersSection();
+        }
+    } catch (error) {
+        console.warn('Could not load preset monsters:', error);
+        hidePresetMonstersSection();
+    }
+}
+
+// Show preset monsters section
+function showPresetMonstersSection() {
+    const presetGroup = document.querySelector('.preset-group');
+    if (presetGroup) {
+        presetGroup.style.display = 'block';
+    }
+}
+
+// Hide preset monsters section
+function hidePresetMonstersSection() {
+    const presetGroup = document.querySelector('.preset-group');
+    if (presetGroup) {
+        presetGroup.style.display = 'none';
+    }
+}
+
+// Populate dropdown with creatures organized by type
+function populateCreatureDropdown() {
+    presetMonstersSelect.innerHTML = '<option value="">-- Select a preset monster --</option>';
+    
+    // Group monsters by type
+    const groupedMonsters = {};
+    presetMonsters.forEach((monster, index) => {
+        const type = monster.type || 'other';
+        if (!groupedMonsters[type]) {
+            groupedMonsters[type] = [];
+        }
+        groupedMonsters[type].push({ monster, index });
+    });
+    
+    // Add creatures organized by type
+    Object.keys(groupedMonsters).sort().forEach(type => {
+        if (groupedMonsters[type].length === 0) return;
+        
+        // Create optgroup for creature type
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = type.charAt(0).toUpperCase() + type.slice(1);
+        
+        // Sort monsters by name within each type
+        groupedMonsters[type].sort((a, b) => a.monster.name.localeCompare(b.monster.name));
+        
+        // Add options for this type
+        groupedMonsters[type].forEach(({ monster, index }) => {
             const option = document.createElement('option');
             option.value = index;
             option.textContent = monster.name;
-            presetMonstersSelect.appendChild(option);
+            optgroup.appendChild(option);
         });
         
-        console.log(`Loaded ${presetMonsters.length} preset monsters`);
-    } catch (error) {
-        console.warn('Could not load preset monsters:', error);
-    }
+        presetMonstersSelect.appendChild(optgroup);
+    });
 }
 
 // Load selected monster data
@@ -1600,6 +1949,8 @@ function loadSelectedMonster() {
     nameInput.value = monster.name;
     crInput.value = monster.cr;
     acInput.value = monster.ac;
+    // Reset manual AC flag when loading preset (this is not user input)
+    acManuallyEntered = false;
     hpInput.value = monster.hp;
     speedInput.value = monster.speed;
     
@@ -1664,3 +2015,17 @@ loadMonsterBtn.addEventListener('click', loadSelectedMonster);
 
 // Export sample data function for easy access
 window.loadSampleData = loadSampleData;
+
+// Medieval Header - Simple hover effects
+document.addEventListener('DOMContentLoaded', function() {
+    const header = document.getElementById('medieval-header');
+    const logoSpace = document.querySelector('.logo-space');
+    
+    // Add subtle interactions for logo placeholder
+    if (logoSpace) {
+        logoSpace.addEventListener('click', function() {
+            // Placeholder for future logo upload functionality
+            console.log('Logo upload placeholder clicked - future feature');
+        });
+    }
+});
